@@ -8,13 +8,19 @@ A compliance auditing tool for smart contracts on the Stacks blockchain. ChainAu
 - Generate audit reports
 - Access control for auditors
 - Event logging system
+- Paginated event retrieval
 
 ## Usage
 The contract provides the following main functions:
 - `record-event`: Records an auditable event
 - `add-auditor`: Adds a new authorized auditor
-- `get-audit-trail`: Retrieves full audit history
-- `generate-report`: Generates an audit report for a time period
+- `get-event`: Retrieves a single audit event by ID
+- `get-events-page`: Retrieves a paginated list of audit events
+- `get-event-count`: Gets total number of recorded events
+- `is-auditor`: Checks if an account is an authorized auditor
+
+### Pagination
+The `get-events-page` function allows retrieval of audit events in pages of 10 events each. This helps manage large audit histories efficiently.
 
 ## Getting Started
 [Installation and usage instructions...]
