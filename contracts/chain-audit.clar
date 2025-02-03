@@ -4,6 +4,8 @@
 (define-constant contract-owner tx-sender)
 (define-constant err-unauthorized (err u100))
 (define-constant err-invalid-event (err u101))
+(define-constant err-invalid-page (err u102))
+(define-constant events-per-page u10)
 
 ;; Data structures
 (define-map auditors principal bool)
@@ -64,6 +66,43 @@
 ;; Get total number of events
 (define-read-only (get-event-count)
   (ok (var-get event-counter))
+)
+
+;; Get paginated events
+(define-read-only (get-events-page (page uint))
+  (let 
+    (
+      (start (* page events-per-page))
+      (end (min (var-get event-counter) (+ start events-per-page)))
+    )
+    (begin
+      (asserts! (< start (var-get event-counter)) err-invalid-page)
+      (ok {
+        total: (var-get event-counter),
+        page: page,
+        events: (map get-event-by-id (create-range start end))
+      })
+    )
+  )
+)
+
+;; Helper to get event by ID
+(define-private (get-event-by-id (id uint))
+  (default-to 
+    {
+      timestamp: u0,
+      contract: contract-owner,
+      function: "",
+      caller: contract-owner,
+      details: ""
+    }
+    (map-get? audit-events id)
+  )
+)
+
+;; Helper to create range
+(define-private (create-range (start uint) (end uint))
+  (list start)
 )
 
 ;; Check if principal is an auditor
