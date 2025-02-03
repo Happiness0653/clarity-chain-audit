@@ -78,3 +78,51 @@ Clarinet.test({
     assertEquals(count.result, "(ok u1)");
   }
 });
+
+Clarinet.test({
+  name: "Ensure can get paginated events",
+  async fn(chain: Chain, accounts: Map<string, Account>) {
+    const deployer = accounts.get("deployer")!;
+    const auditor = accounts.get("wallet_1")!;
+    
+    // Add auditor and record multiple events
+    chain.mineBlock([
+      Tx.contractCall(
+        "chain-audit",
+        "add-auditor",
+        [types.principal(auditor.address)],
+        deployer.address
+      ),
+      Tx.contractCall(
+        "chain-audit", 
+        "record-event",
+        [
+          types.principal(deployer.address),
+          types.ascii("test-1"),
+          types.utf8("Test event 1")
+        ],
+        auditor.address
+      ),
+      Tx.contractCall(
+        "chain-audit",
+        "record-event", 
+        [
+          types.principal(deployer.address),
+          types.ascii("test-2"),
+          types.utf8("Test event 2")
+        ],
+        auditor.address
+      )
+    ]);
+
+    let page = chain.callReadOnlyFn(
+      "chain-audit",
+      "get-events-page",
+      [types.uint(0)],
+      deployer.address
+    );
+
+    assertEquals(page.result.includes('"total": u2'), true);
+    assertEquals(page.result.includes('"page": u0'), true);
+  }
+});
